@@ -187,7 +187,8 @@ def display_articles():
     # Replace segmented control with tabs
     filter_options = {
         "All": None,
-        "Read": True
+        "Read": "read",
+        "Favorites": "favorites"
     }
     selected_tab = st.tabs(list(filter_options.keys()))
 
@@ -272,7 +273,7 @@ def display_article_card(record: Dict[str, Any], col, filter_value: str):
                 text_only = text_only.replace('Read more', '').strip()
                 st.markdown(text_only[:200] if len(text_only) > 200 else text_only)
 
-            _col1, _col2, _col3 = st.columns([0.15, 0.15, 0.7])
+            _col1, _col2, _col3, _col4 = st.columns([0.15, 0.15, 0.15, 0.55])
 
             with _col1:
                 if record['url']:
@@ -287,3 +288,13 @@ def display_article_card(record: Dict[str, Any], col, filter_value: str):
                     key=f"linkedin{record['id']}{filter_value}",
                 ):
                     show_linkedin_post_dialog(record)
+            with _col3:
+                is_favorite = bool(record.get('is_favorite', 0))
+                favorite_icon = "❤️" if is_favorite else "💔"
+                if st.button(
+                    label=favorite_icon,
+                    help="toggle favorite",
+                    key=f"favorite{record['id']}{filter_value}",
+                ):
+                    articles_model.toggle_favorite_status(record['id'])
+                    st.rerun()

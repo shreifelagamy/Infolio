@@ -106,27 +106,33 @@ class Articles:
 
         return articles
 
-    def get_total_filtered_articles(self, filter_read: bool = None) -> int:
+    def get_total_filtered_articles(self, filter_value: str = None) -> int:
         query = 'SELECT COUNT(*) FROM articles'
         params = ()
 
-        if filter_read is not None:
-            query += ' WHERE is_read = ?'
-            params = (1 if filter_read else 0,)
+        if filter_value is not None:
+            if filter_value == "favorites":
+                query += ' WHERE is_favorite = 1'
+            elif filter_value == "read":
+                query += ' WHERE is_read = ?'
+                params = (1 if filter_value else 0,)
 
         result = self.db.fetch_one(query, params)
         return result[0] if result else 0
 
-    def get_filtered_articles(self, page: int, per_page: int = 10, filter_read: bool = None) -> List[Dict[str, Any]]:
+    def get_filtered_articles(self, page: int, per_page: int = 10, filter_value: str = None) -> List[Dict[str, Any]]:
         offset = (page - 1) * per_page
         columns = [column[1] for column in self.db.fetch_all('PRAGMA table_info(articles)')]
 
         query = 'SELECT * FROM articles'
         params = []
 
-        if filter_read is not None:
-            query += ' WHERE is_read = ?'
-            params.append(1 if filter_read else 0)
+        if filter_value is not None:
+            if filter_value == "favorites":
+                query += ' WHERE is_favorite = 1'
+            elif filter_value == "read":
+                query += ' WHERE is_read = ?'
+                params.append(1 if filter_value else 0)
 
         query += ' ORDER BY id DESC LIMIT ? OFFSET ?'
         params.extend([per_page, offset])
