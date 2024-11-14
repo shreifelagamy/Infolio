@@ -1,0 +1,13 @@
+
+[theme]
+primaryColor = "#74b9ff"      # Soft blue (City Lights)
+backgroundColor = "#ffffff"    # White
+secondaryBackgroundColor = "#f5f6fa"  # Very light gray (Innuendo)
+textColor = "#2d3436"         # Dark gray (Dracula Orchid)
+font = "sans serif"
+
+[server]
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
