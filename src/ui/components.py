@@ -113,14 +113,6 @@ def setup_article_styles():
             .stButton>button {
                 transition: all 0.3s ease;
             }
-            /* Improve container styling */
-            .stContainer {
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                transition: all 0.3s ease;
-            }
-            .stContainer:hover {
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -297,4 +289,3 @@ def display_article_card(record: Dict[str, Any], col, filter_value: str):
                     key=f"favorite{record['id']}{filter_value}",
                 ):
                     articles_model.toggle_favorite_status(record['id'])
-                    st.rerun()
