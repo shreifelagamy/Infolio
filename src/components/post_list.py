@@ -1,7 +1,9 @@
-import streamlit as st
 import os
+import streamlit as st
 from utils.text_utils import clean_html
 from .post_dialog import show_post_dialog
+from .linkedin_post_dialog import show_linkedin_post_dialog
+from services.linkedin_service import LinkedInService
 
 class PostList:
     POSTS_PER_PAGE = 10
@@ -11,6 +13,7 @@ class PostList:
 
     def __init__(self, post_service):
         self.post_service = post_service
+        self.linkedin_service = LinkedInService(post_service.db)
 
     def render(self):
         st.subheader("Latest Posts")
@@ -33,7 +36,7 @@ class PostList:
                 "Page",
                 range(1, total_pages + 1),
                 value=1,
-                key="page_slider"
+                key="pageslider"
             )
 
         st.caption(f"Showing page {current_page} of {total_pages} (Total posts: {total_posts})")
@@ -45,23 +48,15 @@ class PostList:
 
     def _render_posts(self, posts):
         for post in posts:
-            with st.container(border=True):
+            with st.container(border=True, key=f"postsview{post.id}"):
                 cols = st.columns([2, 5])
 
                 # Left column: Image
                 with cols[0]:
                     if post.image_url:
-                        st.image(
-                            post.image_url,
-                            width=self.IMAGE_WIDTH,
-                            output_format="JPEG"
-                        )
+                        st.image(post.image_url, width=self.IMAGE_WIDTH, caption=post.title)
                     else:
-                        st.image(
-                            self.DEFAULT_IMAGE,
-                            width=self.IMAGE_WIDTH,
-                            output_format="PNG"
-                        )
+                        st.image(self.DEFAULT_IMAGE, width=self.IMAGE_WIDTH, caption="Default post image")
 
                 # Right column: Content
                 with cols[1]:
@@ -113,11 +108,11 @@ class PostList:
                         st.markdown(f"*{description}*")
 
                     # Action buttons
-                    col1, col2, col3 = st.columns([2, 2, 4])
+                    col1, col2, col3 = st.columns([1, 2, 3])
                     with col1:
-                        if st.button("Read Post →", key=f"read_post_{post.id}"):
-                            # Mark as read if not already read
-                            if not post.is_read:
-                                self.post_service.mark_post_as_read(post.id)
-                            # Open post in a dialog
-                            show_post_dialog(post)
+                        if st.button("Read Post", key=f"read{post.id}"):
+                            self.post_service.mark_post_as_read(post.id)
+                            show_post_dialog(post, self.post_service)
+                    with col2:
+                        if st.button("Generate Post", key=f"linkedin{post.id}"):
+                            show_linkedin_post_dialog(post, self.linkedin_service)

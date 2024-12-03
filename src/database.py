@@ -2,11 +2,36 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from datetime import datetime
 from typing import List, Optional
+import os
 
-from models import Source, Post, init_db
+from models import Source, Post, Base
+
+# Get the absolute path to the project root
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
+DB_FILE = os.path.join(DATA_DIR, 'content_aggregator.db')
+DEFAULT_DB_PATH = f'sqlite:///{DB_FILE}'
+
+print(f"Project root: {PROJECT_ROOT}")
+print(f"Data directory: {DATA_DIR}")
+print(f"Database file: {DB_FILE}")
+print(f"SQLAlchemy URL: {DEFAULT_DB_PATH}")
+
+# Ensure data directory exists
+os.makedirs(DATA_DIR, exist_ok=True)
+
+def init_db(db_path=None):
+    """Initialize the database and create all tables."""
+    if db_path is None:
+        db_path = DEFAULT_DB_PATH
+    engine = create_engine(db_path)
+    Base.metadata.create_all(engine)
+    return engine
 
 class DatabaseManager:
-    def __init__(self, db_path='sqlite:///data/content_aggregator.db'):
+    def __init__(self, db_path=None):
+        if db_path is None:
+            db_path = DEFAULT_DB_PATH
         self.engine = init_db(db_path)
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
@@ -15,11 +40,11 @@ class DatabaseManager:
         """Add a new source to the database."""
         # Check if URL already exists
         existing_source = self.session.query(Source).filter(
-            (Source.url == url) | 
+            (Source.url == url) |
             (Source.feed_url == url) |
             (Source.feed_url == feed_url)
         ).first()
-        
+
         if existing_source:
             raise ValueError("This source URL or feed URL already exists")
 
@@ -37,7 +62,7 @@ class DatabaseManager:
     def check_source_exists(self, url: str, feed_url: Optional[str] = None) -> bool:
         """Check if a source with the given URL or feed URL already exists."""
         query = self.session.query(Source).filter(
-            (Source.url == url) | 
+            (Source.url == url) |
             (Source.feed_url == url) |
             (Source.feed_url == feed_url)
         )

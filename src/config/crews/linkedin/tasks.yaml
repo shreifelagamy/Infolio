@@ -1,0 +1,56 @@
+research_task:
+  description: >
+    Analyze this article for LinkedIn content creation:
+    Title: {title}
+    Content: {content}
+    
+    Extract the following with LinkedIn's professional audience in mind:
+    1. Key insights and main points that would interest professionals
+    2. Industry implications and trends
+    3. Professional development opportunities
+    4. Business impact and relevance
+    5. Supporting data or examples that add credibility
+  expected_output: >
+    A comprehensive analysis focusing on aspects that would interest LinkedIn's
+    professional audience and drive engagement
+  agent: researcher
+
+writing_task:
+  description: >
+    Create an engaging LinkedIn post based on the research analysis.
+    Consider these LinkedIn-specific elements:
+    - Professional yet engaging opening hook
+    - Key insights that provide value to professionals
+    - Industry perspective and trends
+    - Call to action that encourages professional discussion
+    - Strategic use of LinkedIn-appropriate hashtags
+    
+    User preferences: {preferences}
+    
+    Follow LinkedIn best practices:
+    - Keep paragraphs short (2-3 lines)
+    - Use emojis sparingly and professionally
+    - Include line breaks for readability
+    - Total length should be optimal for LinkedIn
+  expected_output: >
+    A well-crafted LinkedIn post optimized for professional engagement
+  agent: writer
+
+editing_task:
+  description: >
+    Polish the LinkedIn post for maximum platform impact:
+    1. Optimize structure for LinkedIn's algorithm
+    2. Ensure professional tone while maintaining engagement
+    3. Add/refine LinkedIn-appropriate hashtags
+    4. Check length (optimal is 1300 characters)
+    5. Enhance viral potential while maintaining professionalism
+    
+    Consider LinkedIn-specific elements:
+    - First two lines (hook visibility in feed)
+    - Strategic line breaks
+    - Professional emoji usage
+    - Hashtag placement and relevance
+  expected_output: >
+    A polished, professional LinkedIn post ready for publication,
+    optimized for the platform's algorithm and audience
+  agent: editor
