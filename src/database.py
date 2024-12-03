@@ -13,6 +13,16 @@ class DatabaseManager:
 
     def add_source(self, url: str, feed_url: Optional[str] = None, name: Optional[str] = None) -> Source:
         """Add a new source to the database."""
+        # Check if URL already exists
+        existing_source = self.session.query(Source).filter(
+            (Source.url == url) | 
+            (Source.feed_url == url) |
+            (Source.feed_url == feed_url)
+        ).first()
+        
+        if existing_source:
+            raise ValueError("This source URL or feed URL already exists")
+
         source = Source(
             url=url,
             feed_url=feed_url,
@@ -23,6 +33,15 @@ class DatabaseManager:
         self.session.add(source)
         self.session.commit()
         return source
+
+    def check_source_exists(self, url: str, feed_url: Optional[str] = None) -> bool:
+        """Check if a source with the given URL or feed URL already exists."""
+        query = self.session.query(Source).filter(
+            (Source.url == url) | 
+            (Source.feed_url == url) |
+            (Source.feed_url == feed_url)
+        )
+        return self.session.query(query.exists()).scalar()
 
     def get_all_sources(self) -> List[Source]:
         """Get all sources from the database."""
@@ -53,12 +72,17 @@ class DatabaseManager:
         self.session.commit()
         return post
 
-    def get_all_posts(self, limit: int = 100) -> List[Post]:
+    def get_all_posts(self, limit: int = 100, offset: int = 0) -> List[Post]:
         """Get all posts from the database, ordered by published date."""
         return self.session.query(Post)\
             .order_by(Post.published_date.desc())\
+            .offset(offset)\
             .limit(limit)\
             .all()
+
+    def get_total_posts_count(self) -> int:
+        """Get total number of posts in the database."""
+        return self.session.query(Post).count()
 
     def get_posts_by_source(self, source_id: int, limit: int = 50) -> List[Post]:
         """Get posts from a specific source."""
@@ -72,6 +96,14 @@ class DatabaseManager:
         """Delete all posts from a specific source."""
         self.session.query(Post).filter_by(source_id=source_id).delete()
         self.session.commit()
+
+    def mark_post_as_read(self, post_id: int):
+        """Mark a post as read."""
+        post = self.session.query(Post).filter_by(id=post_id).first()
+        if post:
+            post.is_read = True
+            post.read_at = datetime.utcnow()
+            self.session.commit()
 
     def close(self):
         """Close the database session."""

@@ -29,6 +29,8 @@ class Post(Base):
     external_link = Column(String(500), unique=True)
     published_date = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+    read_at = Column(DateTime, nullable=True)
     source_id = Column(Integer, ForeignKey('sources.id'))
     
     source = relationship("Source", back_populates="posts")
