@@ -1,17 +1,18 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 from .base import Base
 
 class Source(Base):
     __tablename__ = 'sources'
-    
+
     id = Column(Integer, primary_key=True)
-    url = Column(String(500), unique=True, nullable=False)
+    name = Column(String(100))
+    url = Column(String(500), nullable=False)
     feed_url = Column(String(500))
-    name = Column(String(200))
-    created_at = Column(DateTime, default=datetime.utcnow)
     last_checked = Column(DateTime)
-    is_active = Column(Boolean, default=True)
-    
-    posts = relationship("Post", back_populates="source")
+    created_at = Column(DateTime, server_default=func.now())
+
+    # Set up cascade deletion for related posts
+    posts = relationship('Post', back_populates='source', cascade='all, delete-orphan', passive_deletes=True)

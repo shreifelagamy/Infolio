@@ -12,11 +12,6 @@ DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
 DB_FILE = os.path.join(DATA_DIR, 'content_aggregator.db')
 DEFAULT_DB_PATH = f'sqlite:///{DB_FILE}'
 
-print(f"Project root: {PROJECT_ROOT}")
-print(f"Data directory: {DATA_DIR}")
-print(f"Database file: {DB_FILE}")
-print(f"SQLAlchemy URL: {DEFAULT_DB_PATH}")
-
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 

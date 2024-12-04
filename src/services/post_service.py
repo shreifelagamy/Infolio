@@ -1,6 +1,11 @@
 from datetime import datetime
+
+from sqlalchemy.exc import IntegrityError
+
 from database import DatabaseManager
+from models import Post
 from utils.feed_utils import parse_feed
+
 
 class PostService:
     def __init__(self, db: DatabaseManager):
@@ -18,23 +23,54 @@ class PostService:
         """Mark a post as read."""
         self.db.mark_post_as_read(post_id)
 
-    def add_posts_from_feed(self, source_id: int, feed_url: str) -> tuple[bool, str]:
+    def add_posts_from_feed(self, source_id: int, feed_url: str) -> tuple[int, int]:
         """Add posts from a feed URL."""
         try:
             posts = parse_feed(feed_url)
-            for post in posts:
-                try:
-                    self.db.add_post(
-                        source_id=source_id,
-                        title=post['title'],
-                        description=post.get('description', ''),
-                        summary=post.get('summary', ''),
-                        image_url=post.get('image_url'),
-                        external_link=post['link'],
-                        published_date=post['published_date']
-                    )
-                except Exception as e:
-                    return False, f"Error adding post: {str(e)}"
-            return True, "Posts added successfully"
+            return self.add_posts_from_feed_entries(source_id, posts)
         except Exception as e:
-            return False, f"Error parsing feed: {str(e)}"
+            return 0, f"Error parsing feed: {str(e)}"
+
+    def add_posts_from_feed_entries(self, source_id: int, entries: list) -> tuple[int, int]:
+        """Add posts from feed entries
+
+        Args:
+            source_id: ID of the source
+            entries: List of feed entries
+
+        Returns:
+            tuple: (number of posts added, total number of entries)
+        """
+        posts_added = 0
+        total_entries = len(entries)
+
+        for entry in entries:
+            try:
+                # Create post object
+                post = Post(
+                    title=entry.get('title'),
+                    description=entry.get('description'),
+                    summary=entry.get('summary'),
+                    image_url=entry.get('image_url'),
+                    external_link=entry.get('link'),
+                    published_date=entry.get('published_date'),
+                    source_id=source_id
+                )
+
+                # Try to add the post
+                self.db.session.add(post)
+                self.db.session.commit()
+                posts_added += 1
+
+            except IntegrityError:
+                # Post with this title and source already exists, skip it
+                self.db.session.rollback()
+                continue
+
+            except Exception as e:
+                # Log other errors but continue processing
+                print(f"Error adding post: {str(e)}")
+                self.db.session.rollback()
+                continue
+
+        return posts_added, total_entries
